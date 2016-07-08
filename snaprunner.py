@@ -64,7 +64,7 @@ class snapshot:
 
     def read_snapshot_args(self, argsfile):
         if not os.path.isfile(argsfile):   
-            raise(ProgError('The snapshot arguments file \'{0}\' was not found!'.format(argsfile)))
+            raise ProgError
 
         with open(argsfile, 'r') as logfile:
             argstr = logfile.read()
@@ -74,7 +74,7 @@ class snapshot:
         for arg in arglist:
             for bad_arg in self.bad_snapshot_args:
                 if arg.lower().startswith(bad_arg.lower()):
-                    raise(ProgError('Argument "{0}" can not be used in snapshot arguments file "{1}", because this argument is used by this script itself!'.format(arg, argsfile)))
+                    raise ProgError
 
         return arglist
 
@@ -82,24 +82,24 @@ class snapshot:
         name = os.path.splitext(file)[0] # remove extension
         parts = name.split('_')
         if len(parts) != 5:
-            raise(ProgError('{0}: invalid backup file name. It must be composed of five_parts separated by \'_\'.'.format(file)))
+            raise ProgError
 
         nr = parts[2]
         if not nr.startswith('b'):
-            raise(ProgError('{0}: invalid backup number. It must start with \'b\' followed by a number.'.format(file)))
+            raise ProgError
     
         nr = nr[1:]
         if not nr.isdigit():
-            raise(ProgError('{0}: invalid backup number. It must start with \'b\' followed by a number.'.format(file)))
+            raise ProgError
         nr = int(nr)
 
         type = parts[4]
         if type != 'full' and type != 'diff':
-            raise(ProgError('{0}: invalid type \'{1}\'.'.format(file, type)))
+            raise ProgError
     
         ds = parts[3];
         if len(ds) != 15:
-            raise(ProgError('{0}: invalid date part \'{1}\'.'.format(file, parts[1])))
+            raise ProgError
 
         dd = datetime.strptime(ds, self.dateformat)
 
@@ -116,11 +116,11 @@ class snapshot:
 
     def get_existing_backups(self):
         # get all backup files which belong to this machine and drive
-        filesall = filter(self.findsna, os.listdir(self.args.backupdir))
-        files = filter(self.makemachinefilter(self.machine, self.drive), filesall)
+        filesall = list(filter(self.findsna, os.listdir(self.args.backupdir)))
+        files = list(filter(self.makemachinefilter(self.machine, self.drive), filesall))
 
         # get parts of each file name
-        struct = map(self.dismantle, files)
+        struct = list(map(self.dismantle, files))
         if not struct:
             struct = []
     
@@ -155,13 +155,13 @@ class snapshot:
 
         # check if snapshot command exists
         if not os.path.isfile(self.args.cmd):   
-            raise(ProgError('The snapshot executable \'{0}\' was not found!'.format(self.args.cmd)))
+            raise ProgError
         if not os.access(self.args.cmd, os.X_OK):
-            raise(ProgError('The snapshot executable \'{0}\' is not executable!'.format(self.args.cmd)))
+            raise ProgError
     
         # check if backup dir is not a file and create it
         if os.path.isfile(self.args.backupdir):
-            raise(ProgError('The backup directory \'{0}\' is not a directory !!!'.format(self.args.backupdir)))
+            raise ProgError
 
         # read snapshot args file
         snapshot_args = self.default_snapshot_args
@@ -186,7 +186,7 @@ class snapshot:
             lastfull = fullbackups[-1]
             hshfile = os.path.join(self.args.backupdir, lastfull[0][:-4] + '.hsh')
             if not os.path.isfile(hshfile):
-                raise(ProgError('Hash file of last full backup {0} does not exist!'.format(hshfile)))
+                raise ProgError
 
         # determine number of differential backups since last full backup
         count_diffs = 0
@@ -222,7 +222,7 @@ class snapshot:
         if self.args.exclude:
             # merge exclude arguments into a single list
             excludes = [el for elements in self.args.exclude for el in elements]
-            exstr = string.join(map(lambda s: '"{0}"'.format(s) if '@' in s else s, excludes), ',')
+            exstr = string.join(['"{0}"'.format(s) if '@' in s else s for s in excludes], ',')
             backup_cmd = backup_cmd + [ '--exclude:' + exstr ]
 
         # log to temp logfile
@@ -244,7 +244,7 @@ class snapshot:
             self.logtext = logfile.read()
 
         if self.returncode != 0:
-            raise(ProgError('Snapshot returned with errorcode {0}!'.format(self.returncode)))
+            raise ProgError
 
     def docleanup(self):
         # clean up old backups
@@ -304,7 +304,7 @@ class snapshot:
             self.docleanup()
         except (KeyboardInterrupt, SystemExit):    
             raise
-        except Exception, ex:
+        except Exception as ex:
             logging.exception(ex.message)
             self.exception = traceback.format_exc()
             self.failed = True

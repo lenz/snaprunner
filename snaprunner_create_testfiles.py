@@ -13,7 +13,7 @@ def touch(fname, times=None):
 
 cnt = 0
 nr = 0
-for i in reversed(list(xrange(100))):
+for i in reversed(list(range(100))):
     day = today - timedelta(days = i)
 
     type = 'diff'
