@@ -4,7 +4,6 @@
 
 import os
 import sys
-import string
 import argparse
 import shlex
 import platform
@@ -234,7 +233,7 @@ class Snapshot(object):
 
         backup_cmd = backup_cmd + ['--LogFile:' + self.logfilename]
 
-        self.backup_commandline = string.join(backup_cmd)
+        self.backup_commandline = ''.join(backup_cmd)
         logging.info("Executing: " + self.backup_commandline)
 
         # do it
@@ -393,7 +392,7 @@ if __name__ == "__main__":
 
         if len(argerr) > 0:
             parser.print_help()
-            sys.stderr.write('\n{0}\n'.format(string.join(argerr, '\n')))
+            sys.stderr.write('\n{0}\n'.format('\n'.join(argerr)))
             os._exit(1)
 
     snapshot = Snapshot(args)
