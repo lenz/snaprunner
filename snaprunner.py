@@ -280,7 +280,7 @@ class Snapshot(object):
     def mail(self, body):
         # mail the stuff
         if self.args.mail_to:
-            msg = MIMEText(body, 'text')
+            msg = MIMEText(body)
             msg['Subject'] = '{0}Snapshot of {1} drive {2} {3}'.format('SIMULATED ' if self.args.simulate else '', self.machine, self.args.drive, 'FAILED' if self.failed else 'SUCCESSFULL')
             msg['From'] = self.args.mail_from
             msg['To'] = self.args.mail_to
