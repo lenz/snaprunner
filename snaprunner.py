@@ -292,7 +292,10 @@ class Snapshot(object):
             msg._headers = [h for h in msg._headers if h[0] != 'Content-Transfer-Encoding']
             email.encoders.encode_base64(msg)
 
-            server = smtplib.SMTP(self.args.mail_smtp)
+            server = smtplib.SMTP()
+            server.connect(self.args.mail_server, self.args.mail_port)
+            server.starttls()
+            server.login(self.args.mail_from, self.args.mail_pass)
             server.sendmail(self.args.mail_from, self.args.mail_to, msg.as_string())
             server.quit()
 
@@ -376,15 +379,17 @@ if __name__ == "__main__":
     mailgroup = parser.add_argument_group('mail options')
     mailgroup.add_argument('--mail_to', help='Mail address for status mail.')
     mailgroup.add_argument('--mail_from', help='Sender mail address for mail. Required if --mail_to is specified.')
-    mailgroup.add_argument('--mail_smtp', help='Smtp server for mailing. Required if --mail_to is specified.')
+    mailgroup.add_argument('--mail_server', help='Smtp server for mailing. Required if --mail_to is specified.')
+    mailgroup.add_argument('--mail_port', default=25, help='Smtp port for mailing. Required if --mail_to is specified.')
+    mailgroup.add_argument('--mail_pass', help='Smtp Password for mailing. Required if --mail_to is specified.')
     args = parser.parse_args()
 
     if args.mail_to:
         argerr = []
         if not args.mail_from:
             argerr = argerr + ['The argument mail_from is missing.']
-        if not args.mail_smtp:
-            argerr = argerr + ['The argument mail_smtp is missing.']
+        if not args.mail_server:
+            argerr = argerr + ['The argument mail_server is missing.']
 
         if len(argerr) > 0:
             parser.print_help()
