@@ -225,7 +225,7 @@ class Snapshot(object):
         if self.args.exclude:
             # merge exclude arguments into a single list
             excludes = [el for elements in self.args.exclude for el in elements]
-            exstr = string.join(['"{0}"'.format(s) if '@' in s else s for s in excludes], ',')
+            exstr = ','.join(['"{0}"'.format(s) if '@' in s else s for s in excludes])
             backup_cmd = backup_cmd + ['--exclude:' + exstr]
 
         # log to temp logfile
@@ -311,7 +311,7 @@ class Snapshot(object):
         except (KeyboardInterrupt, SystemExit):
             raise
         except Exception as ex:
-            logging.exception(ex.message)
+            logging.exception(ex)
             self.exception = traceback.format_exc()
             self.failed = True
 
