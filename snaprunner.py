@@ -292,7 +292,7 @@ class Snapshot(object):
             email.encoders.encode_base64(msg)
 
             server = smtplib.SMTP()
-            server.connect(self.args.mail_server)
+            server.connect(self.args.mail_host)
             server.starttls()
             server.login(self.args.mail_from, self.args.mail_pass)
             server.sendmail(self.args.mail_from, self.args.mail_to, msg.as_string())
@@ -386,8 +386,8 @@ if __name__ == "__main__":
         argerr = []
         if not args.mail_from:
             argerr = argerr + ['The argument mail_from is missing.']
-        if not args.mail_server:
-            argerr = argerr + ['The argument mail_server is missing.']
+        if not args.mail_host:
+            argerr = argerr + ['The argument mail_host is missing.']
 
         if len(argerr) > 0:
             parser.print_help()
