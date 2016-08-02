@@ -294,7 +294,7 @@ class Snapshot(object):
             server = smtplib.SMTP()
             server.connect(self.args.mail_host)
             server.starttls()
-            server.login(self.args.mail_from, self.args.mail_pass)
+            server.login(self.args.mail_user, self.args.mail_pass)
             server.sendmail(self.args.mail_from, self.args.mail_to, msg.as_string())
             server.quit()
 
@@ -379,7 +379,8 @@ if __name__ == "__main__":
     mailgroup.add_argument('--mail_to', help='Mail address for status mail.')
     mailgroup.add_argument('--mail_from', help='Sender mail address for mail. Required if --mail_to is specified.')
     mailgroup.add_argument('--mail_host', help='Smtp server for mailing. Required if --mail_to is specified.')
-    mailgroup.add_argument('--mail_pass', help='Smtp Password for mailing. Required if --mail_to is specified.')
+    mailgroup.add_argument('--mail_user', help='Smtp user for mailing. Required if --mail_to is specified.')
+    mailgroup.add_argument('--mail_pass', help='Smtp password for mailing. Required if --mail_to is specified.')
     args = parser.parse_args()
 
     if args.mail_to:
