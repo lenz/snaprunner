@@ -292,7 +292,7 @@ class Snapshot(object):
             email.encoders.encode_base64(msg)
 
             server = smtplib.SMTP()
-            server.connect(self.args.mail_server, self.args.mail_port)
+            server.connect(self.args.mail_server)
             server.starttls()
             server.login(self.args.mail_from, self.args.mail_pass)
             server.sendmail(self.args.mail_from, self.args.mail_to, msg.as_string())
@@ -378,8 +378,7 @@ if __name__ == "__main__":
     mailgroup = parser.add_argument_group('mail options')
     mailgroup.add_argument('--mail_to', help='Mail address for status mail.')
     mailgroup.add_argument('--mail_from', help='Sender mail address for mail. Required if --mail_to is specified.')
-    mailgroup.add_argument('--mail_server', help='Smtp server for mailing. Required if --mail_to is specified.')
-    mailgroup.add_argument('--mail_port', default=25, help='Smtp port for mailing. Required if --mail_to is specified.')
+    mailgroup.add_argument('--mail_host', help='Smtp server for mailing. Required if --mail_to is specified.')
     mailgroup.add_argument('--mail_pass', help='Smtp Password for mailing. Required if --mail_to is specified.')
     args = parser.parse_args()
 
