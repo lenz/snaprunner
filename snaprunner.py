@@ -12,27 +12,28 @@ import traceback
 import subprocess
 import email
 import smtplib
-import itertools
 import logging
 import tempfile
 import locale
 from email.mime.text import MIMEText
-from datetime import datetime, date, time, timedelta
+from datetime import datetime, timedelta
 
-locale.setlocale(locale.LC_ALL, '') # use system's locale
-logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s',level=logging.DEBUG)
+locale.setlocale(locale.LC_ALL, '')  # use system's locale
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.DEBUG)
+
 
 class ProgError(Exception):
     pass
 
-class snapshot:
+
+class Snapshot(object):
     def __init__(self, args):
         # Default snapshot arguments, if --argsfile is not used.
         # --CreateDir: Create destination directory if it does not exist.
-        self.default_snapshot_args = ['--CreateDir', '--AutoBackupSize:512', '-L0', '-Gx' ]
+        self.default_snapshot_args = ['--CreateDir', '--AutoBackupSize:512', '-L0', '-Gx']
 
         # Those arguments can not be used in the snapshot arguments file because they are used by this script.
-        self.bad_snapshot_args = ['-W', '--LogFile', '-h' ]
+        self.bad_snapshot_args = ['-W', '--LogFile', '-h']
 
         # Date format used in backup file names. Should not be changed.
         self.dateformat = '%Y%m%d-%H%M%S'
@@ -50,7 +51,7 @@ class snapshot:
         self.logfilename = None
         self.logtext = None
         self.returncode = None
-        
+
         self.deletetime_all = None
         self.deletetime_diff = None
         self.deleted_files = []
@@ -63,7 +64,7 @@ class snapshot:
         return list(lex)
 
     def read_snapshot_args(self, argsfile):
-        if not os.path.isfile(argsfile):   
+        if not os.path.isfile(argsfile):
             raise ProgError
 
         with open(argsfile, 'r') as logfile:
@@ -79,7 +80,7 @@ class snapshot:
         return arglist
 
     def dismantle(self, file):
-        name = os.path.splitext(file)[0] # remove extension
+        name = os.path.splitext(file)[0]  # remove extension
         parts = name.split('_')
         if len(parts) != 5:
             raise ProgError
@@ -87,7 +88,7 @@ class snapshot:
         nr = parts[2]
         if not nr.startswith('b'):
             raise ProgError
-    
+
         nr = nr[1:]
         if not nr.isdigit():
             raise ProgError
@@ -96,8 +97,8 @@ class snapshot:
         type = parts[4]
         if type != 'full' and type != 'diff':
             raise ProgError
-    
-        ds = parts[3];
+
+        ds = parts[3]
         if len(ds) != 15:
             raise ProgError
 
@@ -106,13 +107,15 @@ class snapshot:
         return (file, nr, type, dd)
 
     def makemachinefilter(self, machine, drive):
-        def findmachine(x) : 
+        def findmachine(x):
             return x.startswith(machine + '_' + drive + '_')
         return findmachine
 
-    def findhsh(self, x) : return x.endswith('.hsh')
+    def findhsh(self, x):
+        return x.endswith('.hsh')
 
-    def findsna(self, x) : return x.endswith('.sna')
+    def findsna(self, x):
+        return x.endswith('.sna')
 
     def get_existing_backups(self):
         # get all backup files which belong to this machine and drive
@@ -123,20 +126,20 @@ class snapshot:
         struct = list(map(self.dismantle, files))
         if not struct:
             struct = []
-    
+
         return struct
 
     def delete_backupfiles(self, files):
         logging.debug(files)
-        retval = [] 
+        retval = []
         for filename in files:
             base = os.path.splitext(filename)[0].lower()
             for f in sorted(os.listdir(self.args.backupdir)):
                 f = f.lower()
-                if not os.path.isfile(f):   
+                if not os.path.isfile(f):
                     dpath = os.path.join(self.args.backupdir, f)
                     [dbase, dext] = os.path.splitext(f)
-                
+
                     if base == dbase:
                         # delete only *.hsh and *.sn* files
                         if dext.startswith('.sn') or dext == '.hsh':
@@ -154,11 +157,11 @@ class snapshot:
             self.drive = self.drive[:-1]
 
         # check if snapshot command exists
-        if not os.path.isfile(self.args.cmd):   
+        if not os.path.isfile(self.args.cmd):
             raise ProgError
         if not os.access(self.args.cmd, os.X_OK):
             raise ProgError
-    
+
         # check if backup dir is not a file and create it
         if os.path.isfile(self.args.backupdir):
             raise ProgError
@@ -169,7 +172,7 @@ class snapshot:
             snapshot_args = self.read_snapshot_args(self.args.argsfile)
 
         self.args.backupdir = os.path.abspath(self.args.backupdir)
-        if not os.path.isdir(self.args.backupdir):   
+        if not os.path.isdir(self.args.backupdir):
             os.makedirs(self.args.backupdir)
 
         struct = self.get_existing_backups()
@@ -177,8 +180,8 @@ class snapshot:
         # Sort by backup number and date. The last one in the list is the most recent backup.
         struct = sorted(struct, key=lambda x: (x[1], x[3]))
 
-        # filter out all full backups 
-        fullbackups = [ s for s in struct if s[2] == 'full' ]
+        # filter out all full backups
+        fullbackups = [s for s in struct if s[2] == 'full']
 
         # determine last full backup
         lastfull = None
@@ -191,22 +194,22 @@ class snapshot:
         # determine number of differential backups since last full backup
         count_diffs = 0
         if lastfull:
-            diffbackups = [ s for s in struct if s[1] == lastfull[1] and s[2] == 'diff' ]
+            diffbackups = [s for s in struct if s[1] == lastfull[1] and s[2] == 'diff']
             count_diffs = len(diffbackups)
 
-        # make this a differential backup if full backup exists and the number of differential 
+        # make this a differential backup if full backup exists and the number of differential
         # backups is below --diffcount
         self.backup_type = 'diff'
         if not lastfull:
             self.backup_type = 'full'
-            self.backup_nr = 1            
+            self.backup_nr = 1
         else:
             self.backup_nr = lastfull[1]
             if count_diffs >= self.args.diffcount:
                 self.backup_type = 'full'
                 self.backup_nr = self.backup_nr + 1
 
-        # create file name of backup        
+        # create file name of backup
         date = datetime.now()
         self.backup_file = os.path.join(self.args.backupdir, '{0}_{1}_b{2}_{3}_{4}.sna'.format(self.machine, self.drive, self.backup_nr, date.strftime(self.dateformat), self.backup_type))
 
@@ -216,26 +219,26 @@ class snapshot:
         # if diff backup add reference to hash file of full backup
         if self.backup_type == 'diff':
             logging.info('Performing differential backup based on hash file {0}.'.format(hshfile))
-            backup_cmd = backup_cmd + [ '-h' + hshfile ]
+            backup_cmd = backup_cmd + ['-h' + hshfile]
 
-        # exclude files 
+        # exclude files
         if self.args.exclude:
             # merge exclude arguments into a single list
             excludes = [el for elements in self.args.exclude for el in elements]
             exstr = string.join(['"{0}"'.format(s) if '@' in s else s for s in excludes], ',')
-            backup_cmd = backup_cmd + [ '--exclude:' + exstr ]
+            backup_cmd = backup_cmd + ['--exclude:' + exstr]
 
         # log to temp logfile
-        with tempfile.NamedTemporaryFile(delete=False, suffix = ".log") as logfile:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".log") as logfile:
             self.logfilename = logfile.name
 
-        backup_cmd = backup_cmd + [ '--LogFile:' + self.logfilename ]
-        
+        backup_cmd = backup_cmd + ['--LogFile:' + self.logfilename]
+
         self.backup_commandline = string.join(backup_cmd)
         logging.info("Executing: " + self.backup_commandline)
 
-        # do it      
-        if (not self.args.simulate):      
+        # do it
+        if (not self.args.simulate):
             self.returncode = subprocess.call(backup_cmd)
         else:
             self.returncode = 0
@@ -254,23 +257,23 @@ class snapshot:
         delfiles = set()
         # delete differential backups older then x days
         if not self.args.deletediff is None:
-            self.deletetime_diff = now - timedelta(days = self.args.deletediff)
+            self.deletetime_diff = now - timedelta(days=self.args.deletediff)
             logging.info('Deleting differential backups <= {0}'.format(self.deletetime_diff))
 
-            delfiles.update([ f for f in struct if f[2] == 'diff' and f[3] <= self.deletetime_diff ])
+            delfiles.update([f for f in struct if f[2] == 'diff' and f[3] <= self.deletetime_diff])
 
         # delete all backups older then x days
         if not self.args.delete is None:
-            self.deletetime_all = now - timedelta(days = self.args.delete)
+            self.deletetime_all = now - timedelta(days=self.args.delete)
             logging.info('Deleting all backups <= {0}'.format(self.deletetime_all))
 
-            delfiles.update([ f for f in struct if f[3] <= self.deletetime_all ])
+            delfiles.update([f for f in struct if f[3] <= self.deletetime_all])
 
             # do not delete full backups which have diff backups that are kept.
-            keep_id = set([ f[1] for f in struct if not f in delfiles ])
-            delfiles.difference_update([ f for f in delfiles if f[1] in keep_id and f[2] == 'full' ])
+            keep_id = set([f[1] for f in struct if not f in delfiles])
+            delfiles.difference_update([f for f in delfiles if f[1] in keep_id and f[2] == 'full'])
 
-        delfiles = [ f[0] for f in delfiles ]
+        delfiles = [f[0] for f in delfiles]
 
         # actually delete the files
         self.deleted_files = self.delete_backupfiles(delfiles)
@@ -294,7 +297,7 @@ class snapshot:
             server.quit()
 
     def execute(self):
-        # We catch any exceptions during backup and cleanup and 
+        # We catch any exceptions during backup and cleanup and
         # add that to the mail.
         try:
             # execute snapshot backup
@@ -302,7 +305,7 @@ class snapshot:
 
             # perform cleanup
             self.docleanup()
-        except (KeyboardInterrupt, SystemExit):    
+        except (KeyboardInterrupt, SystemExit):
             raise
         except Exception as ex:
             logging.exception(ex.message)
@@ -310,7 +313,7 @@ class snapshot:
             self.failed = True
 
         if self.logfilename:
-             os.remove(self.logfilename)
+            os.remove(self.logfilename)
 
         # gather information into readable form
         body = ''
@@ -388,5 +391,5 @@ if __name__ == "__main__":
             sys.stderr.write('\n{0}\n'.format(string.join(argerr, '\n')))
             os._exit(1)
 
-    snapshot = snapshot(args)
+    snapshot = Snapshot(args)
     snapshot.execute()

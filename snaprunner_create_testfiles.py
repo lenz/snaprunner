@@ -1,11 +1,12 @@
 # Creates a bunch of empty test files which come in handy for testing the cleanup feature.
 
-from datetime import datetime, timedelta, date
-import os 
+from datetime import datetime, timedelta
+import os
 
 dir = 'F:\\backup_test'
 today = datetime.today()
 dateformat = '%Y%m%d-%H%M%S'
+
 
 def touch(fname, times=None):
     with open(fname, 'a'):
@@ -14,7 +15,7 @@ def touch(fname, times=None):
 cnt = 0
 nr = 0
 for i in reversed(list(range(100))):
-    day = today - timedelta(days = i)
+    day = today - timedelta(days=i)
 
     type = 'diff'
     if (cnt % 5 == 0):
