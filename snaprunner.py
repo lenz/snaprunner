@@ -341,7 +341,7 @@ class Snapshot(object):
             if self.deletetime_all:
                 body = body + 'Deleted all backups <= {0}\n'.format(self.deletetime_all.strftime("%x %X"))
             if self.deletetime_diff:
-                body = body + 'Deleted differental backups <= {0}\n'.format(self.deletetime_diff.strftime("%x %X"))
+                body = body + 'Deleted differential backups <= {0}\n'.format(self.deletetime_diff.strftime("%x %X"))
 
             body = body + 'Deleted files:\n'
             for f in self.deleted_files:
