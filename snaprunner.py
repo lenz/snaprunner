@@ -229,7 +229,7 @@ class Snapshot(object):
 
         backup_cmd = backup_cmd + ['--LogFile:' + self.logfilename]
 
-        self.backup_commandline = ''.join(backup_cmd)
+        self.backup_commandline = ' '.join(backup_cmd)
         logging.info("Executing: " + self.backup_commandline)
 
         # do it
