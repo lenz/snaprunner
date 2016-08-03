@@ -1,7 +1,3 @@
-# $Author: norbert $
-# $Date: 2014-08-03 20:34:12 +0200 (So, 03 Aug 2014) $
-# $Revision: 252 $
-
 import os
 import sys
 import argparse
@@ -309,8 +305,8 @@ class Snapshot(object):
             self.docleanup()
         except (KeyboardInterrupt, SystemExit):
             raise
-        except Exception as ex:
-            logging.exception(ex)
+        except Exception as e:
+            logging.exception(e)
             self.exception = traceback.format_exc()
             self.failed = True
 
