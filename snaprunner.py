@@ -230,6 +230,10 @@ class Snapshot(object):
         backup_cmd = backup_cmd + ['--LogFile:' + self.logfilename]
 
         self.backup_commandline = ' '.join(backup_cmd)
+        self.backup_commandline = re.sub(r"-PW=.*? ", "-PW=******* ", self.backup_commandline)
+        self.backup_commandline = re.sub(r"--setdefaultpwd=.*? ", "--setdefaultpwd=******* ", self.backup_commandline)
+        
+        
         logging.info("Executing: " + self.backup_commandline)
 
         # do it
