@@ -10,6 +10,7 @@ import smtplib
 import logging
 import tempfile
 import locale
+import re
 from email.mime.text import MIMEText
 from datetime import datetime, timedelta
 
